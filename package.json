@@ -1,0 +1,49 @@
+{
+  "name": "carrot-pool-stratum",
+  "version": "0.1.0",
+  "description": "High performance SHA256 Stratum Server in Node.js",
+  "keywords": [
+    "stratum",
+    "mining",
+    "pool",
+    "server",
+    "poolserver",
+    "bitcoin",
+    "bitcoin-sv"
+  ],
+  "license": "GPL-3.0",
+  "author": "HashRabbit, Inc. (https://hashrabbit.com)",
+  "main": "scripts/index.js",
+  "private": true,
+  "repository": "github:hashrabbit/carrot-pool-stratum",
+  "homepage": "https://github.com/hashrabbit/carrot-pool-stratum",
+  "bugs": "https://github.com/hashrabbit/carrot-pool-stratum/issues",
+  "scripts": {
+    "clean": "eslint . --ext .js --ignore-pattern node_modules/",
+    "test": "mocha 'test/**/**_test.js'",
+    "dot": "mocha --exit --reporter dot 'test/**/**_test.js'",
+    "cover": "nyc --reporter=lcov --reporter=text-summary npm run dot"
+  },
+  "dependencies": {
+    "async": "1.5.2",
+    "base58-native": "0.1.4",
+    "bignum": "^0.13.1",
+    "bitcoinjs-lib": "^5.2.0",
+    "bsv": "^1.5.4",
+    "dotenv": "^8.2.0",
+    "promise": "^8.1.0"
+  },
+  "engines": {
+    "node": ">= 12.0.0",
+    "npm": ">= 7.0.0"
+  },
+  "devDependencies": {
+    "chai": "^4.2.0",
+    "eslint": "^7.10.0",
+    "eslint-config-airbnb-base": "^14.2.0",
+    "eslint-plugin-import": "^2.22.1",
+    "mocha": "^8.1.3",
+    "nyc": "^15.1.0",
+    "sinon": "^9.2.0"
+  }
+}
