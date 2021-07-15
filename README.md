@@ -5,7 +5,7 @@
 		<img alt="Status" src="https://img.shields.io/badge/Status-pre--alpha-white?style=for-the-badge&logo=Github" />
 	</a>
 	<a href="#">
-		<img alt="GNU License" src="https://img.shields.io/badge/License-GPL_3.0-informational?style=for-the-badge&logo=GNU" />
+		<img alt="GNU License" src="https://img.shields.io/badge/License-GPL_2.0-informational?style=for-the-badge&logo=GNU" />
 	</a>
 </div>
 
