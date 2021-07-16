@@ -11,7 +11,7 @@
     "bitcoin",
     "bitcoin-sv"
   ],
-  "license": "GPL-3.0",
+  "license": "GPL-2.0",
   "author": "HashRabbit, Inc. (https://hashrabbit.com)",
   "main": "scripts/index.js",
   "private": true,
@@ -34,7 +34,7 @@
     "promise": "^8.1.0"
   },
   "engines": {
-    "node": ">= 12.0.0",
+    "node": ">= 14.0.0",
     "npm": ">= 7.0.0"
   },
   "devDependencies": {
