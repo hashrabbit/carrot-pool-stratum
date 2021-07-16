@@ -3,22 +3,31 @@ name: Node.js CI
 on: [push]
 
 jobs:
-  build:
-
-    runs-on: ubuntu-latest
-
+  test:
     strategy:
       matrix:
-        node-version: [12.x, 14.x]
-
+        node-version: [14.x, 16.x]
+    runs-on: ubuntu-latest
     steps:
-    - uses: actions/checkout@v2
+    - uses: actions/checkout@master
     - name: Use Node.js ${{ matrix.node-version }}
-      uses: actions/setup-node@v1
+      uses: actions/setup-node@master
       with:
         node-version: ${{ matrix.node-version }}
     - run: npm ci
-    - run: npm run build --if-present
     - run: npm test
+  coverage:
+    needs: [ test ]
+    name: coverage
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@master
+    - uses: actions/setup-node@master
+      with:
+        node-version: '14'
+    - run: npm ci
+    - uses: paambaati/codeclimate-action@v2.7.5
       env:
-        CI: true
+        CC_TEST_REPORTER_ID: c508cc21637e6b30f5f67b8a47b0e532c106929d15490ade1ba59810fa5ee387
+      with:
+        coverageCommand: npm run cover
