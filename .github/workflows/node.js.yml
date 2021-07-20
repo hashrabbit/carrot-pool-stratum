@@ -10,6 +10,10 @@ jobs:
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@master
+    - name: Run ssh-agent
+      uses: webfactory/ssh-agent@v0.4.1
+      with:
+          ssh-private-key: ${{ secrets.SSH_PRIVATE_KEY }}
     - name: Use Node.js ${{ matrix.node-version }}
       uses: actions/setup-node@master
       with:
@@ -22,6 +26,10 @@ jobs:
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@master
+    - name: Run ssh-agent
+      uses: webfactory/ssh-agent@v0.4.1
+      with:
+          ssh-private-key: ${{ secrets.SSH_PRIVATE_KEY }}
     - uses: actions/setup-node@master
       with:
         node-version: '14'
