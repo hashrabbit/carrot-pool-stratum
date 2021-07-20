@@ -1,11 +1,14 @@
 <!-- PROJECT SHIELDS -->
-
-<div align="center" style="margin:15px 0">
-	<a href="#">
-		<img alt="Status" src="https://img.shields.io/badge/Status-pre--alpha-white?style=for-the-badge&logo=Github" />
+</div>
+	<div align="center" style="margin:15px 0">
+	<a href="https://github.com/hashrabbit/carrot-pool-stratum">
+		<img alt="Status" src="https://img.shields.io/badge/Status-pre--alpha-white?style=flat-square&logo=Github" />
 	</a>
-	<a href="#">
-		<img alt="GNU License" src="https://img.shields.io/badge/License-GPL_2.0-informational?style=for-the-badge&logo=GNU" />
+	<a href="https://gitter.im/hashrabbit/carrot-pool">
+		<img alt="Gitter Chat" src="https://img.shields.io/badge/Gitter-chat-f3015e?style=flat-square&logo=Gitter" />
+	</a>
+	<a href="https://github.com/hashrabbit/carrot-pool/blob/main/LICENSE">
+		<img alt="GNU License" src="https://img.shields.io/badge/License-GPL_2.0-informational?style=flat-square&logo=GNU" />
 	</a>
 </div>
 
