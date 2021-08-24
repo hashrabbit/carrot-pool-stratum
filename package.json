@@ -41,7 +41,7 @@
     "chai": "^4.2.0",
     "eslint": "^7.17.0",
     "eslint-config-airbnb-base": "^14.2.0",
-    "eslint-plugin-import": "^2.22.1",
+    "eslint-plugin-import": "^2.24.2",
     "mocha": "^8.2.1",
     "nyc": "^15.1.0",
     "sinon": "^9.2.0"
