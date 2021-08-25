@@ -15,7 +15,7 @@ const Difficulty = require('./difficulty.js');
 const Daemon = require('./daemon.js');
 const Manager = require('./manager.js');
 const Peer = require('./peer.js');
-const Stratum = require('./stratum.js');
+const Stratum = require('./stratum');
 
 // Pool Main Function
 const Pool = function (initialOptions, authorizeFn) {
@@ -554,6 +554,7 @@ const Pool = function (initialOptions, authorizeFn) {
           params.extraNonce2,
           params.nTime,
           params.nonce,
+          params.versionRollingBits,
           client.remoteAddress,
           client.socket.localPort,
           params.name,

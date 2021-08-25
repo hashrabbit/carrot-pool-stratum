@@ -9,6 +9,7 @@ const bignum = require('bignum');
 const util = require('./util.js');
 const Transactions = require('./transactions.js');
 const algorithms = require('./algorithms.js');
+const versionRolling = require('./stratum/version_rolling');
 
 // MiningTemplate Main Function
 const MiningCandidate = function (jobId, rawRpcData, extraNoncePlaceholder, options) {
@@ -45,8 +46,8 @@ const MiningCandidate = function (jobId, rawRpcData, extraNoncePlaceholder, opti
   this.prevHashReversed = util.reverseByteOrder(Buffer.from(rpcData.previousblockhash, 'hex')).toString('hex');
 
   // Push Submissions to Array
-  this.registerSubmit = function (extraNonce1, extraNonce2, nTime, nonce) {
-    const submission = extraNonce1 + extraNonce2 + nTime + nonce;
+  this.registerSubmit = function (extraNonce1, extraNonce2, nTime, nonce, versionRollingBits) {
+    const submission = extraNonce1 + extraNonce2 + nTime + nonce + versionRollingBits;
     if (this.submits.indexOf(submission) === -1) {
       this.submits.push(submission);
       return true;
@@ -76,7 +77,7 @@ const MiningCandidate = function (jobId, rawRpcData, extraNoncePlaceholder, opti
   };
 
   // Serialize Block Headers
-  this.serializeHeader = function (merkleRoot, nTime, nonce, optionsArg) {
+  this.serializeHeader = function (merkleRoot, nTime, nonce, version, optionsArg) {
     const headerBuf = Buffer.alloc(80);
     let position = 0;
     switch (optionsArg.coin.algorithm) {
@@ -86,22 +87,23 @@ const MiningCandidate = function (jobId, rawRpcData, extraNoncePlaceholder, opti
         headerBuf.write(nTime, position += 4, 4, 'hex');
         headerBuf.write(merkleRoot, position += 4, 32, 'hex');
         headerBuf.write(this.rpcData.previousblockhash, position += 32, 32, 'hex');
-        headerBuf.writeUInt32BE(this.rpcData.version, position + 32);
+        headerBuf.writeUInt32BE(version, position + 32);
         return util.reverseBuffer(headerBuf);
     }
   };
 
   // Serialize and return the crafted block header, and also return
   // a continuation function for constructing the full solution to submit if desired
-  this.startSolution = function (coinbaseBuffer, merkleRoot, nTime, nonce, optionsArg) {
-    const headerBuffer = this.serializeHeader(merkleRoot, nTime, nonce, optionsArg);
+  this.startSolution = function (coinbaseBuffer, merkleRoot, nTime, nonce, versionRollingBits, optionsArg) {
+    const version = (this.rpcData.version & ~versionRolling.maxMaskBits) | versionRollingBits;
+    const headerBuffer = this.serializeHeader(merkleRoot, nTime, nonce, version, optionsArg);
     const finishSolution = function () {
       return {
         id: this.rpcData.id,
         nonce: parseInt(nonce, 16),
         coinbase: coinbaseBuffer.toString('hex'),
         time: parseInt(nTime, 16),
-        version: this.rpcData.version
+        version
       };
     }.bind(this);
     return [headerBuffer, finishSolution];
@@ -118,7 +120,7 @@ const MiningCandidate = function (jobId, rawRpcData, extraNoncePlaceholder, opti
             this.generation[0].toString('hex'),
             this.generation[1].toString('hex'),
             this.merkleBranchHex,
-            util.packInt32BE(this.rpcData.version).toString('hex'),
+            util.packInt32BE(this.rpcData.version & ~versionRolling.maskMaxBits).toString('hex'),
             this.rpcData.bits,
             util.packUInt32BE(this.rpcData.curtime).toString('hex'),
             true,

@@ -12,6 +12,7 @@ const util = require('./util.js');
 const Merkle = require('./merkle.js');
 const Transactions = require('./transactions.js');
 const algorithms = require('./algorithms.js');
+const versionRolling = require('./stratum/version_rolling');
 
 // BlockTemplate Main Function
 const BlockTemplate = function (jobId, rpcData, extraNoncePlaceholder, options) {
@@ -54,8 +55,8 @@ const BlockTemplate = function (jobId, rpcData, extraNoncePlaceholder, options) 
   }
 
   // Push Submissions to Array
-  this.registerSubmit = function (extraNonce1, extraNonce2, nTime, nonce) {
-    const submission = extraNonce1 + extraNonce2 + nTime + nonce;
+  this.registerSubmit = function (extraNonce1, extraNonce2, nTime, nonce, versionRollingBits) {
+    const submission = extraNonce1 + extraNonce2 + nTime + nonce + versionRollingBits;
     if (this.submits.indexOf(submission) === -1) {
       this.submits.push(submission);
       return true;
@@ -85,7 +86,7 @@ const BlockTemplate = function (jobId, rpcData, extraNoncePlaceholder, options) 
   };
 
   // Serialize Block Headers
-  this.serializeHeader = function (merkleRoot, nTime, nonce, optionsArg) {
+  this.serializeHeader = function (merkleRoot, nTime, nonce, version, optionsArg) {
     const headerBuf = Buffer.alloc(80);
     let position = 0;
     switch (optionsArg.coin.algorithm) {
@@ -95,7 +96,7 @@ const BlockTemplate = function (jobId, rpcData, extraNoncePlaceholder, options) 
         headerBuf.write(nTime, position += 4, 4, 'hex');
         headerBuf.write(merkleRoot, position += 4, 32, 'hex');
         headerBuf.write(this.rpcData.previousblockhash, position += 32, 32, 'hex');
-        headerBuf.writeUInt32BE(this.rpcData.version, position + 32);
+        headerBuf.writeUInt32BE(version, position + 32);
         return util.reverseBuffer(headerBuf);
     }
   };
@@ -116,8 +117,10 @@ const BlockTemplate = function (jobId, rpcData, extraNoncePlaceholder, options) 
 
   // Serialize and return the crafted block header, and also return
   // a continuation function for constructing the full solution to submit if desired
-  this.startSolution = function (coinbaseBuffer, merkleRoot, nTime, nonce, optionsArg) {
-    const headerBuffer = this.serializeHeader(merkleRoot, nTime, nonce, optionsArg);
+  this.startSolution = function (coinbaseBuffer, merkleRoot, nTime, nonce, versionRollingBits, optionsArg) {
+    const version = (this.rpcData.version & ~versionRolling.maxMaskBits) | versionRollingBits;
+    const headerBuffer = this.serializeHeader(merkleRoot, nTime, nonce, version, optionsArg);
+
     const finishSolution = function () {
       return this.serializeBlock(headerBuffer, coinbaseBuffer, optionsArg).toString('hex');
     }.bind(this);
@@ -135,7 +138,7 @@ const BlockTemplate = function (jobId, rpcData, extraNoncePlaceholder, options) 
             this.generation[0].toString('hex'),
             this.generation[1].toString('hex'),
             this.merkleBranchHex,
-            util.packInt32BE(this.rpcData.version).toString('hex'),
+            util.packInt32BE(this.rpcData.version & ~versionRolling.maxMaskBits).toString('hex'),
             this.rpcData.bits,
             util.packUInt32BE(this.rpcData.curtime).toString('hex'),
             true,

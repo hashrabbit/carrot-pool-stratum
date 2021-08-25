@@ -129,7 +129,7 @@ const Manager = function (options) {
 
   // Process New Submitted Share
   this.processShare = function (jobId, previousPoolDifficulty, poolDifficulty, extraNonce1,
-    extraNonce2, nTime, nonce, ipAddress, port, workerName) {
+    extraNonce2, nTime, nonce, versionRollingBits, ipAddress, port, workerName) {
     // Share is Invalid
     const shareError = function (error) {
       _this.emit('share', {
@@ -164,7 +164,7 @@ const Manager = function (options) {
         if (nonce.length !== 8) {
           return shareError([20, 'incorrect size of nonce']);
         }
-        if (!job.registerSubmit(extraNonce1, extraNonce2, nTime, nonce)) {
+        if (!job.registerSubmit(extraNonce1, extraNonce2, nTime, nonce, versionRollingBits)) {
           return shareError([22, 'duplicate share']);
         }
 
@@ -182,7 +182,7 @@ const Manager = function (options) {
         ).toString('hex');
 
         const [headerBuffer, finishSolution] = job.startSolution(
-          coinbaseBuffer, merkleRoot, nTime, nonce, options
+          coinbaseBuffer, merkleRoot, nTime, nonce, versionRollingBits, options
         );
         const headerHash = hashDigest(headerBuffer, nTimeInt);
         const headerBigNum = bignum.fromBuffer(headerHash, { endian: 'little', size: 32 });

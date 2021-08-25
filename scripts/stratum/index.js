@@ -1,7 +1,8 @@
 // Import Required Modules
 const net = require('net');
 const events = require('events');
-const util = require('./util.js');
+const util = require('../util.js');
+const versionRolling = require('./version_rolling.js');
 
 // Increment Count for Each Subscription
 const SubscriptionCounter = function () {
@@ -98,6 +99,36 @@ const StratumClient = function (options) {
     return true;
   };
 
+  function handleConfigure(message) {
+    const [extensions, extensionParams] = message.params;
+
+    const handleVersionRolling = (versionRollingParams) => {
+      const result = versionRolling.handle(versionRollingParams);
+      if (result['version-rolling']) {
+        _this.versionRollingMaskHex = result['version-rolling.mask'];
+      }
+      return result;
+    };
+
+    const handlers = { 'version-rolling': handleVersionRolling };
+
+    let response = {};
+    extensions.forEach((extension) => {
+      if (handlers[extension]) {
+        const extensionResult = handlers[extension](extensionParams);
+        response = { ...response, ...extensionResult };
+      } else {
+        response[extension] = false;
+      }
+    });
+
+    sendJson({
+      id: message.id,
+      result: response,
+      error: null,
+    });
+  }
+
   // Manage Stratum Subscription
   function handleSubscribe(message) {
     if (!_this.authorized) {
@@ -168,14 +199,36 @@ const StratumClient = function (options) {
       considerBan(false);
       return;
     }
+
+    const submitParams = {
+      name: message.params[0],
+      jobId: message.params[1],
+      extraNonce2: message.params[2],
+      nTime: message.params[3].toLowerCase(),
+      nonce: message.params[4].toLowerCase()
+    };
+
+    // If version rolling is enabled, and version bits are sent
+    // Validate the bits and add it to the submitParams
+    if (message.params[5] && _this.versionRollingMaskHex) {
+      if (!versionRolling.validate(message.params[5], _this.versionRollingMaskHex)) {
+        sendJson({
+          id: message.id,
+          result: null,
+          error: [20, 'invalid version rolling bits', null],
+        });
+        considerBan(false);
+        return;
+      }
+
+      const versionRollingBits = parseInt(message.params[5], 16);
+      submitParams.versionRollingBits = versionRollingBits;
+    } else {
+      submitParams.versionRollingBits = 0;
+    }
+
     _this.emit('submit',
-      {
-        name: message.params[0],
-        jobId: message.params[1],
-        extraNonce2: message.params[2],
-        nTime: message.params[3].toLowerCase(),
-        nonce: message.params[4].toLowerCase(),
-      },
+      submitParams,
       (error, result) => {
         if (!considerBan(result)) {
           sendJson({
@@ -190,6 +243,11 @@ const StratumClient = function (options) {
   // Handle Stratum Messages
   function handleMessage(message) {
     switch (message.method) {
+      // Manage mining.configure
+      case 'mining.configure':
+        handleConfigure(message);
+        break;
+
       // Manage Stratum Subscription
       case 'mining.subscribe':
         handleSubscribe(message);
